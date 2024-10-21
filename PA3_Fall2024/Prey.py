@@ -70,15 +70,30 @@ class Head(Component):
         self.components = []
         self.contextParent = parent
 
-        head = Sphere(Point((0, 0, 0.4)), shaderProg, [0.15, 0.15, 0.15],
+        head = Sphere(Point((0, 0.3, 0)), shaderProg, [0.2, 0.2, 0.2],
                       Ct.PINK)
-
+        head.setDefaultAngle(-90, head.uAxis)
+        head.setDefaultAngle(90, head.wAxis)
         head.setRotateExtent(head.uAxis, -45, 45)
         head.setRotateExtent(head.vAxis, -45, 45)
         head.setRotateExtent(head.wAxis, -45, 45)
 
+        nose = Cylinder(Point((-0.1, 0, 0.14)), shaderProg, [0.06, 0.05, 0.075], Ct.WHITE)
+        nose.setDefaultAngle(-90, nose.vAxis)
+        nose.setDefaultAngle(-90, nose.wAxis)
+
         self.addChild(head)
-        self.components = [head]
+        head.addChild(nose)
+        self.components = [head, nose]
+        AddMirror(self, nose, Cylinder, (0.03, 0, 0), shaderProg, [0.02, 0.02, 0.076], Ct.SOFTRED)
+
+
+def AddMirror(self, parent, shape, pos, shaderProg, size, color):
+    l = shape(Point(pos), shaderProg, size, color)
+    r = shape(Point(tuple(x if i != 0 else -x for i, x in enumerate(pos))), shaderProg, size, color)
+    for c in [l, r]:
+        self.components.append(c)
+        parent.addChild(c)
 
 
 class Body(Component):
@@ -87,10 +102,10 @@ class Body(Component):
         self.components = []
         self.contextParent = parent
 
-        body = Sphere(Point((0, 0, 0)), shaderProg, [0.2, 0.2, 0.2],
-                      Ct.BLUE)
+        body = Sphere(Point((0, 0, 0)), shaderProg, [0.20, 0.20, 0.20],
+                      Ct.BLUE, lowPoly=True)
 
-        # body.setDefaultAngle(-90, body.uAxis)
+        body.setDefaultAngle(-90, body.uAxis)
 
         self.addChild(body)
         self.components = [body]
