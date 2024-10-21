@@ -13,7 +13,8 @@ from Point import Point
 from Component import Component
 from ModelTank import Tank
 from EnvironmentObject import EnvironmentObject
-from ModelLinkage import Linkage, Prey
+from ModelLinkage import Linkage
+from Prey import Prey
 
 
 class Vivarium(Component):

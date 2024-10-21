@@ -17,7 +17,8 @@ class Prey(Component, EnvironmentObject):
         head = Head(body, Point((0, 0, 0)), shaderProg)
 
         self.components = head.components + body.components
-        self.addChild(head)
+        self.addChild(body)
+        body.addChild(head)
 
         self.rotation_speed = []
         for comp in self.components:
@@ -69,11 +70,14 @@ class Head(Component):
         self.components = []
         self.contextParent = parent
 
-        head = Sphere(Point((0, 0, 0)), shaderProg, [0.1, 0.1, 0.1],
+        head = Sphere(Point((0, 0, 0)), shaderProg, [0.15, 0.15, 0.15],
                       Ct.PINK)
 
-        self.addChild(head)
+        head.setRotateExtent(head.uAxis, -45, 45)
+        head.setRotateExtent(head.vAxis, -45, 45)
+        head.setRotateExtent(head.wAxis, -45, 45)
 
+        self.addChild(head)
         self.components = [head]
 
 
@@ -84,8 +88,9 @@ class Body(Component):
         self.contextParent = parent
 
         body = Sphere(Point((0, 0, 0)), shaderProg, [0.2, 0.2, 0.2],
-                      Ct.GREEN)
+                      Ct.BLUE)
+
+        body.setDefaultAngle(-90, body.uAxis)
 
         self.addChild(body)
-
         self.components = [body]
