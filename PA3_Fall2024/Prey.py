@@ -70,7 +70,7 @@ class Head(Component):
         self.components = []
         self.contextParent = parent
 
-        head = Sphere(Point((0, 0, 0)), shaderProg, [0.15, 0.15, 0.15],
+        head = Sphere(Point((0, 0, 0.4)), shaderProg, [0.15, 0.15, 0.15],
                       Ct.PINK)
 
         head.setRotateExtent(head.uAxis, -45, 45)
@@ -90,7 +90,7 @@ class Body(Component):
         body = Sphere(Point((0, 0, 0)), shaderProg, [0.2, 0.2, 0.2],
                       Ct.BLUE)
 
-        body.setDefaultAngle(-90, body.uAxis)
+        # body.setDefaultAngle(-90, body.uAxis)
 
         self.addChild(body)
         self.components = [body]
