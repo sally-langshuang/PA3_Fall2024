@@ -173,7 +173,7 @@ class Sketch(CanvasBase):
 
         self.components = self.vivarium.components
         self.c_dict = self.vivarium.c_dict
-        self.select_components = self.vivarium.c_dict['prey'].components
+        self.obj_dict = self.vivarium.obj_dict
 
         gl.glClearColor(0.2, 0.3, 0.3, 1.0)
         gl.glClearDepth(1.0)
@@ -266,19 +266,27 @@ class Sketch(CanvasBase):
             size = size / 10
         return size
 
-    def _adjust_angle(self, target, keycode, size):
+    def _adjust_angle(self, target, keycode, size, mirror=False):
         if keycode == ord('u') or keycode == ord('U'):
             target.setDefaultAngle(target.uAngle + size, target.uAxis)
         elif keycode == ord('v') or keycode == ord('V'):
+            if mirror:
+                target.setDefaultAngle(target.vAngle - size, target.vAxis)
+                return
             target.setDefaultAngle(target.vAngle + size, target.vAxis)
         elif keycode == ord('w') or keycode == ord('W'):
+            if mirror:
+                target.setDefaultAngle(target.wAngle - size, target.wAxis)
+                return
             target.setDefaultAngle(target.wAngle + size, target.wAxis)
         else:
             return
 
-    def _adjust_pos(self, target, keycode, size):
+    def _adjust_pos(self, target, keycode, size, mirror=False):
         if keycode == ord('x') or keycode == ord('X'):
             j = 0
+            if mirror:
+                size = -size
         elif keycode == ord('y') or keycode == ord('Y'):
             j = 1
         elif keycode == ord('z') or keycode == ord('Z'):
@@ -301,38 +309,59 @@ class Sketch(CanvasBase):
         sc[i] = sc[i] + size if sc[i] + size > 0 else 0.001
         target.setDefaultScale(sc)
 
-    def _select(self, event):
+    def _select_target(self, event):
         keycode = event.GetKeyCode()
+        select_components = self.vivarium.obj_dict['prey'].components
         if keycode in [wx.WXK_LEFT]:
-            if len(self.c_dict['prey'].components) > 0:
-                self.select_components[self.select_obj_index].reset("color")
-                self.select_obj_index = (self.select_obj_index - 1) % len(self.select_components)
-                self.select_components[self.select_obj_index].setCurrentColor(self.select_color[0])
+            if len(select_components) > 0:
+                select_components[self.select_obj_index].reset("color")
+                self.select_obj_index = (self.select_obj_index - 1) % len(select_components)
+                select_components[self.select_obj_index].setCurrentColor(self.select_color[0])
             self.update()
-        if keycode in [wx.WXK_RIGHT]:
-            if len(self.components) > 0:
-                self.select_components[self.select_obj_index].reset("color")
-                self.select_obj_index = (self.select_obj_index + 1) % len(self.select_components)
-                self.select_components[self.select_obj_index].setCurrentColor(self.select_color[0])
+        elif keycode in [wx.WXK_RIGHT]:
+            if len(select_components) > 0:
+                select_components[self.select_obj_index].reset("color")
+                self.select_obj_index = (self.select_obj_index + 1) % len(select_components)
+                select_components[self.select_obj_index].setCurrentColor(self.select_color[0])
             self.update()
+        target = select_components[self.select_obj_index]
+        return target
 
+    def _get_mirror(self, target):
+        for name, c in self.c_dict.items():
+            if c is target:
+                if len(name.split('_', 1)) == 2:
+                    pre, suf = name.split('_', 1)
+                    if pre == 'left':
+                        mirror_name = 'right_' + suf
+                        print(f'target {name}, mirror {mirror_name}')
+                        return self.c_dict[mirror_name]
+                    elif pre == 'right':
+                        mirror_name = 'left_' + suf
+                        print(f'target {name}, mirror {mirror_name}')
+                        return self.c_dict[mirror_name]
+        return None
 
     def adjust(self, event):
-        self._select(event)
+        target = self._select_target(event)
         keycode = event.GetUnicodeKey()
-
-        if self.select_obj_index < 0:
+        if self.select_obj_index < 0 or target is None:
             return
-        target = self.select_components[self.select_obj_index]
         size = self._adjust_size(event)
         if size is None:
             return
-        target.setDefaultColor(ColorType.RED)
+
         self._adjust_angle(target, keycode, size)
         self._adjust_pos(target, keycode, size)
         self._adjust_scale(target, keycode, size)
         print(
             f"current u: {target.uAngle} v: {target.vAngle} w: {target.wAngle}  pos: {target.currentPos}, scale: {target.currentScaling}")
+        mirror = self._get_mirror(target)
+        if mirror is not None:
+            self._adjust_angle(mirror, keycode, size, mirror=True)
+            self._adjust_pos(mirror, keycode, size, mirror=True)
+            self._adjust_scale(mirror, keycode, size)
+
 
     def OnDestroy(self, event):
         """

@@ -22,6 +22,8 @@ class Vivarium(Component):
     The Vivarium for our animation
     """
     components = None  # List
+    c_dict = None
+    obj_dict = None
     parent = None  # class that have current context
     tank = None
     tank_dimensions = None
@@ -49,8 +51,9 @@ class Vivarium(Component):
         # Store all components in one list, for us to access them later
         self.components = [tank]
         self.c_dict = dict()
+        self.obj_dict = dict()
         self.addNewObjInTank(Linkage(parent, Point((0,0,0)), shaderProg))
-        self.addNewObjInTank(Prey(parent, Point((0,0,0)), shaderProg), "prey")
+        self.addNewObjInTank(Prey(Point((0,0,0)), shaderProg, size=2), "prey")
 
     def animationUpdate(self):
         """
@@ -75,7 +78,9 @@ class Vivarium(Component):
             self.tank.addChild(newComponent)
             self.components.append(newComponent)
             if name != "":
-                self.c_dict[name] = newComponent
+                self.obj_dict[name] = newComponent
+                for k, v in newComponent.c_dict.items():
+                    self.c_dict.update(newComponent.c_dict)
         if isinstance(newComponent, EnvironmentObject):
             # add environment components list reference to this new object's
             newComponent.env_obj_list = self.components
