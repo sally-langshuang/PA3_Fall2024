@@ -53,7 +53,7 @@ class Vivarium(Component):
         self.c_dict = dict()
         self.obj_dict = dict()
         self.addNewObjInTank(Linkage(parent, Point((0,0,0)), shaderProg))
-        self.addNewObjInTank(Prey(Point((0,0,0)), shaderProg, size=2), "prey")
+        self.addNewObjInTank(Prey(Point((0,0,0)), shaderProg), "prey")
 
     def animationUpdate(self):
         """

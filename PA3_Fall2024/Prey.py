@@ -10,13 +10,17 @@ class Prey(Component, EnvironmentObject):
     components = None
     rotation_speed = None
     translation_speed = None
+    name = "George"
 
     def __init__(self, postion, shaderProg, size=1):
         super(Prey, self).__init__(postion)
-        body = Body(self, Point((0, 0, 0)), shaderProg, size=size)
-        head = Head(body, Point((0, 0, 0)), shaderProg, size=size)
-        self.components = body.components + head.components
-        self.c_dict = {**body.c_dict, **head.c_dict}
+        bound = Cube(Point((0,0,0)), shaderProg, [0.30, 0.45, 0.25], Ct.WHITE)
+        bound = Cube(Point((0,0,0)), shaderProg, [0.30/2, 0.45/2, 0.25/2], Ct.WHITE)
+        # self.addChild(bound)
+        body = Body(self, Point((0, 0.3*size, -0.2 * size)), shaderProg, size=size)
+        head = Head(body.c_dict['body'], Point((0, 0, 0)), shaderProg, size=size)
+        self.components = body.components + head.components + [bound]
+        self.c_dict = {**body.c_dict, **head.c_dict, 'bound': bound}
         self.rotation_speed = []
         for comp in self.components:
             comp.setRotateExtent(comp.uAxis, 0, 35)
@@ -27,6 +31,25 @@ class Prey(Component, EnvironmentObject):
         self.bound_center = Point((0, 0, 0))
         self.bound_radius = 4
         self.species_id = 1
+
+        left_leg = self.c_dict['left_leg_joint0']
+        right_leg = self.c_dict['right_leg_joint0']
+        self.rotation_speed = []
+        speed = 5
+        for i, leg in enumerate([left_leg, right_leg]):
+            leg.setRotateExtent(leg.uAxis, leg.default_uAngle - 35, leg.default_uAngle + 35)
+            leg.setRotateExtent(leg.vAxis, leg.default_vAngle - 45, leg.default_vAngle + 45)
+            leg.setRotateExtent(leg.wAxis, leg.default_wAngle - 45, leg.default_wAngle + 45)
+            self.rotation_speed.append([0.5 *speed if i %2 == 0 else -0.5*speed,0, 0])
+
+        left_arm = self.c_dict['left_arm_joint0']
+        right_arm = self.c_dict['right_arm_joint0']
+        for i, arm in enumerate([left_arm, right_arm]):
+            arm.setRotateExtent(leg.uAxis, arm.default_uAngle - 35, arm.default_uAngle + 35)
+            arm.setRotateExtent(leg.vAxis, arm.default_vAngle - 45, arm.default_vAngle + 45)
+            arm.setRotateExtent(leg.wAxis, arm.default_wAngle - 45, arm.default_wAngle + 45)
+            self.rotation_speed.append([-0.5 *speed if i %2 ==0 else 0.5* speed, 0, 0])
+
 
     def stepForward(self, components, tank_dimensions, vivarium):
         ##### TODO 3: Interact with the environment
@@ -46,6 +69,24 @@ class Prey(Component, EnvironmentObject):
         pass
 
     def animationUpdate(self):
+        pass
+        # left_leg = self.c_dict['left_leg_joint0']
+        # right_leg = self.c_dict['right_leg_joint0']
+        # left_arm = self.c_dict['left_arm_joint0']
+        # right_arm = self.c_dict['right_arm_joint0']
+        # for i, comp in enumerate([left_leg, right_leg, left_arm, right_arm]):
+        #     # print(f'before {comp.uAngle}, {comp.vAngle}, {comp.wAngle}, {comp.uRange}, {comp.vRange}, {comp.wRange}')
+        #     comp.rotate(self.rotation_speed[i][0], comp.uAxis)
+        #     comp.rotate(self.rotation_speed[i][1], comp.vAxis)
+        #     comp.rotate(self.rotation_speed[i][2], comp.wAxis)
+        #     if comp.uAngle + self.rotation_speed[i][0] >= comp.uRange[1] or comp.uAngle + self.rotation_speed[i][0] <= comp.uRange[0]:  # rotation reached the limit
+        #         self.rotation_speed[i][0] *= -1
+        #     if comp.vAngle + self.rotation_speed[i][1] >= comp.vRange[1] + self.rotation_speed[i][1] or comp.vAngle <= comp.vRange[0]:
+        #         self.rotation_speed[i][1] *= -1
+        #     if comp.wAngle + self.rotation_speed[i][2] >= comp.wRange[1] or comp.wAngle + self.rotation_speed[i][2] <= comp.wRange[0]:
+        #         self.rotation_speed[i][2] *= -1
+        #     # print(f'{comp.uAngle}, {comp.vAngle}, {comp.wAngle}, {comp.uRange}, {comp.vRange}, {comp.wRange}')
+
         ##### TODO 2: Animate your creature!
         # Requirements:
         #   1. Set reasonable joints limit for your creature
@@ -65,7 +106,7 @@ class Head(Component):
     def __init__(self, parent, position, shaderProg, size=1, display_obj=None):
         super().__init__(position, display_obj)
         self.name = "head"
-        head = Sphere(Point((0 *size, 0.3 *size, 0 *size)), shaderProg, [0.2 *size, 0.2 *size, 0.2 *size],
+        head = Sphere(Point((0 *size, 0.14 *size, 0.2 *size)), shaderProg, [0.2 *size, 0.2 *size, 0.2 *size],
                       Ct.PINK)
         head.setDefaultAngle(-90, head.uAxis)
         head.setDefaultAngle(0, head.wAxis)
@@ -124,13 +165,12 @@ class Body(Component):
         super().__init__(position, display_obj)
         body = Sphere(Point((0, 0, 0)), shaderProg, [0.20 *size, 0.20 *size, 0.18 *size],
                       Ct.BLUE, lowPoly=True)
-        body.setDefaultAngle(-90, body.uAxis)
 
-        left_arm = Arm(body, Point((0.08 *size, 0 *size, 0.07 *size)), shaderProg, size=size)
-        right_arm = Arm(body, Point((-0.08 *size, 0 *size, 0.07 *size)), shaderProg, mirror=True, size=size)
+        left_arm = Arm(body, Point((0.08 *size, 0.08 *size, 0*size)), shaderProg, size=size)
+        right_arm = Arm(body, Point((-0.08 *size, 0.08 *size, 0 *size)), shaderProg, mirror=True, size=size)
 
-        left_leg = Leg(body, Point((0.06 *size, 0 *size, -0.06 *size)), shaderProg, size=size)
-        right_leg = Leg(body, Point((-0.06 *size, 0 *size, -0.06 *size)), shaderProg, mirror=True, size=size)
+        left_leg = Leg(body, Point((0.06 *size, -0.09 *size, 0 *size)), shaderProg, size=size)
+        right_leg = Leg(body, Point((-0.06 *size, -0.09 *size, 0 *size)), shaderProg, mirror=True, size=size)
 
         parent.addChild(self)
         self.addChild(body)
@@ -150,9 +190,10 @@ class Arm(Component):
 
         joint0 = Sphere(position, shaderProg, [limb_width, limb_width, limb_width], Ct.PINK)
         if not mirror:
-            joint0.setDefaultAngle(145, joint0.vAxis)
+            joint0.setDefaultAngle(45, joint0.vAxis)
         else:
-            joint0.setDefaultAngle(-145, joint0.vAxis)
+            joint0.setDefaultAngle(-45, joint0.vAxis)
+        joint0.setDefaultAngle(90, joint0.uAxis)
 
         limb0 = Cylinder(Point((0, 0, limb_len)), shaderProg, [limb_width, limb_width, limb_len], Ct.PINK)
 
@@ -197,6 +238,7 @@ class Leg(Component):
             joint0.setDefaultAngle(180, joint0.vAxis)
         else:
             joint0.setDefaultAngle(-180, joint0.vAxis)
+        joint0.setDefaultAngle(-90, joint0.uAxis)
 
         limb0 = Cylinder(Point((0, 0, limb_len)), shaderProg, [limb_width, limb_width, limb_len], Ct.PINK)
 
