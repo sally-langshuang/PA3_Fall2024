@@ -3,6 +3,7 @@ import random
 from Component import Component
 from Shapes import *
 from Point import Point
+from util import AddMirror
 import ColorType as Ct
 from EnvironmentObject import EnvironmentObject
 
@@ -14,10 +15,9 @@ class Prey(Component, EnvironmentObject):
 
     def __init__(self, postion, shaderProg, size=1):
         super(Prey, self).__init__(postion)
-        bound = Cube(Point((0,0,0)), shaderProg, [0.30, 0.45, 0.25], Ct.WHITE)
-        bound = Cube(Point((0,0,0)), shaderProg, [0.30/2, 0.45/2, 0.25/2], Ct.WHITE)
+        bound = Cube(Point((0,0,0)), shaderProg, [0.70*size, 0.9*size, 0.5*size], Ct.WHITE)
         # self.addChild(bound)
-        body = Body(self, Point((0, 0.3*size, -0.2 * size)), shaderProg, size=size)
+        body = Body(self, Point((0, 0.22*size, -0.2 * size)), shaderProg, size=size)
         head = Head(body.c_dict['body'], Point((0, 0, 0)), shaderProg, size=size)
         self.components = body.components + head.components + [bound]
         self.c_dict = {**body.c_dict, **head.c_dict, 'bound': bound}
@@ -69,23 +69,23 @@ class Prey(Component, EnvironmentObject):
         pass
 
     def animationUpdate(self):
-        pass
-        # left_leg = self.c_dict['left_leg_joint0']
-        # right_leg = self.c_dict['right_leg_joint0']
-        # left_arm = self.c_dict['left_arm_joint0']
-        # right_arm = self.c_dict['right_arm_joint0']
-        # for i, comp in enumerate([left_leg, right_leg, left_arm, right_arm]):
-        #     # print(f'before {comp.uAngle}, {comp.vAngle}, {comp.wAngle}, {comp.uRange}, {comp.vRange}, {comp.wRange}')
-        #     comp.rotate(self.rotation_speed[i][0], comp.uAxis)
-        #     comp.rotate(self.rotation_speed[i][1], comp.vAxis)
-        #     comp.rotate(self.rotation_speed[i][2], comp.wAxis)
-        #     if comp.uAngle + self.rotation_speed[i][0] >= comp.uRange[1] or comp.uAngle + self.rotation_speed[i][0] <= comp.uRange[0]:  # rotation reached the limit
-        #         self.rotation_speed[i][0] *= -1
-        #     if comp.vAngle + self.rotation_speed[i][1] >= comp.vRange[1] + self.rotation_speed[i][1] or comp.vAngle <= comp.vRange[0]:
-        #         self.rotation_speed[i][1] *= -1
-        #     if comp.wAngle + self.rotation_speed[i][2] >= comp.wRange[1] or comp.wAngle + self.rotation_speed[i][2] <= comp.wRange[0]:
-        #         self.rotation_speed[i][2] *= -1
-        #     # print(f'{comp.uAngle}, {comp.vAngle}, {comp.wAngle}, {comp.uRange}, {comp.vRange}, {comp.wRange}')
+        left_leg = self.c_dict['left_leg_joint0']
+        right_leg = self.c_dict['right_leg_joint0']
+        left_arm = self.c_dict['left_arm_joint0']
+        right_arm = self.c_dict['right_arm_joint0']
+        for i, comp in enumerate([left_leg, right_leg, left_arm, right_arm]):
+            # print(f'before {comp.uAngle}, {comp.vAngle}, {comp.wAngle}, {comp.uRange}, {comp.vRange}, {comp.wRange}')
+            comp.rotate(self.rotation_speed[i][0], comp.uAxis)
+            comp.rotate(self.rotation_speed[i][1], comp.vAxis)
+            comp.rotate(self.rotation_speed[i][2], comp.wAxis)
+            if comp.uAngle + self.rotation_speed[i][0] >= comp.uRange[1] or comp.uAngle + self.rotation_speed[i][0] <= comp.uRange[0]:  # rotation reached the limit
+                self.rotation_speed[i][0] *= -1
+            if comp.vAngle + self.rotation_speed[i][1] >= comp.vRange[1] + self.rotation_speed[i][1] or comp.vAngle <= comp.vRange[0]:
+                self.rotation_speed[i][1] *= -1
+            if comp.wAngle + self.rotation_speed[i][2] >= comp.wRange[1] or comp.wAngle + self.rotation_speed[i][2] <= comp.wRange[0]:
+                self.rotation_speed[i][2] *= -1
+            # print(f'{comp.uAngle}, {comp.vAngle}, {comp.wAngle}, {comp.uRange}, {comp.vRange}, {comp.wRange}')
+        self.vAngle = (self.vAngle + 3) %360
 
         ##### TODO 2: Animate your creature!
         # Requirements:
@@ -113,6 +113,10 @@ class Head(Component):
         head.setRotateExtent(head.uAxis, -45, 45)
         head.setRotateExtent(head.vAxis, -45, 45)
         head.setRotateExtent(head.wAxis, -45, 45)
+        mouth = Sphere(Point((0 * size, -0.2 * size, 0.040 * size)), shaderProg,
+                       [0.081 * size, 0.001 * size, 0.07 * size],
+                       Ct.SOFTRED, lowPoly=False)
+        mouth.setDefaultAngle(-50, mouth.uAxis)
 
         nose = Cylinder(Point((0 *size, -0.08 *size, 0.16 *size)), shaderProg, [0.06 *size, 0.05 *size, 0.075 *size], Ct.PINK)
         nose.setDefaultAngle(90, nose.uAxis)
@@ -120,8 +124,9 @@ class Head(Component):
         parent.addChild(self)
         self.addChild(head)
         head.addChild(nose)
-        self.components = [head, nose]
-        self.c_dict = {"head": head, "nose": nose}
+        head.addChild(mouth)
+        self.components = [head, nose, mouth]
+        self.c_dict = {"head": head, "nose": nose, "mouth": mouth}
         AddMirror(self, [nose, nose], Cylinder, (0.03 *size, 0 *size, 0 *size), shaderProg, [0.02 *size, 0.02 *size, 0.076 *size], Ct.SOFTRED, "nostril")
         l_eyeball, r_eyeball = AddMirror(self, [head, head], Sphere, (0.12 *size, -0.1 *size, 0.1 *size), shaderProg, [0.045 *size, 0.045 *size, 0.045 *size], Ct.WHITE, "eyeball", [-20, 0, 20])
         AddMirror(self, [l_eyeball, r_eyeball], Sphere, (0 *size, -0.02 *size, 0 *size), shaderProg, [0.03 *size, 0.03 *size, 0.03 *size], Ct.BLACK, "pupil", [0, 0, 0])
@@ -130,47 +135,22 @@ class Head(Component):
                                          [0.04 *size, 0.008 *size, 0.08 *size], Ct.PINK, "ear", [0, 0, 0])
 
 
-def AddMirror(self, parents, shape, pos, shaderProg, size, color, name, angle=[0, 0, 0]):
-    l = shape(Point(pos), shaderProg, size, color)
-    r = shape(Point(tuple(x if i != 0 else -x for i, x in enumerate(pos))), shaderProg, size, color)
-    for i, prefix, c, parent in zip(range(2), ['left', 'right'], [l, r], parents):
-        for j, a in enumerate(angle):
-            a = a % 360
-            if a  == 0: continue
-
-            x = None
-            if j == 0:
-                x = c.uAxis
-            elif j == 1:
-                x = c.vAxis
-                if i % 2 == 1:
-                  a = -a
-            elif j == 2:
-                x = c.wAxis
-                if i % 2 == 1:
-                  a = -a
-
-            if x is not None:
-                c.setDefaultAngle(a, x)
-
-        self.components.append(c)
-        self.c_dict[prefix +"_"+ name] = c
-        parent.addChild(c)
-    return l, r
-
 
 
 class Body(Component):
     def __init__(self, parent, position, shaderProg, display_obj=None, size=1):
         super().__init__(position, display_obj)
-        body = Sphere(Point((0, 0, 0)), shaderProg, [0.20 *size, 0.20 *size, 0.18 *size],
+        body = Sphere(Point((0*size, -0.34*size, 0.2*size)), shaderProg, [0.20 *size, 0.20 *size, 0.18 *size],
                       Ct.BLUE, lowPoly=True)
 
-        left_arm = Arm(body, Point((0.08 *size, 0.08 *size, 0*size)), shaderProg, size=size)
-        right_arm = Arm(body, Point((-0.08 *size, 0.08 *size, 0 *size)), shaderProg, mirror=True, size=size)
+        left_arm = Arm(body, Point((0.06 *size, 0.08 *size, 0*size)), shaderProg, size=size)
+        right_arm = Arm(body, Point((-0.06 *size, 0.08 *size, 0 *size)), shaderProg, mirror=True, size=size)
 
-        left_leg = Leg(body, Point((0.06 *size, -0.09 *size, 0 *size)), shaderProg, size=size)
-        right_leg = Leg(body, Point((-0.06 *size, -0.09 *size, 0 *size)), shaderProg, mirror=True, size=size)
+        left_leg = Leg(body, Point((0.06 *size, -0.05 *size, 0 *size)), shaderProg, size=size)
+        right_leg = Leg(body, Point((-0.06 *size, -0.05 *size, 0 *size)), shaderProg, mirror=True, size=size)
+
+        tail = Cone(Point((0*size, -0.14*size, -0.1*size)), shaderProg, [0.015*size, 0.015*size, 0.04*size], Ct.PINK)
+        tail.setDefaultAngle(-210, tail.uAxis)
 
         parent.addChild(self)
         self.addChild(body)
@@ -178,9 +158,10 @@ class Body(Component):
         body.addChild(right_arm)
         body.addChild(left_leg)
         body.addChild(right_leg)
+        body.addChild(tail)
 
-        self.components = [body] + left_arm.components + right_arm.components + left_leg.components + right_leg.components
-        self.c_dict = {'body': body, **left_arm.c_dict, **right_arm.c_dict, **left_leg.c_dict, **right_leg.c_dict}
+        self.components = [body] + left_arm.components + right_arm.components + left_leg.components + right_leg.components + [tail]
+        self.c_dict = {'body': body, **left_arm.c_dict, **right_arm.c_dict, **left_leg.c_dict, **right_leg.c_dict, 'tail': tail}
 
 class Arm(Component):
     def __init__(self, parent, position, shaderProg, display_obj=None, mirror=False, size=1):

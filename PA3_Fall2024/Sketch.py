@@ -172,7 +172,8 @@ class Sketch(CanvasBase):
         self.topLevelComponent.initialize()
 
         self.components = self.vivarium.components
-        self.c_dict = self.vivarium.c_dict
+        self.k_c_dict = self.vivarium.k_c_dict
+        self.c_k_dict = self.vivarium.c_k_dict
         self.obj_dict = self.vivarium.obj_dict
 
         gl.glClearColor(0.2, 0.3, 0.3, 1.0)
@@ -311,39 +312,41 @@ class Sketch(CanvasBase):
 
     def _select_target(self, event):
         keycode = event.GetKeyCode()
-        select_components = self.vivarium.obj_dict['prey'].components
+        select_components = self.vivarium.obj_dict['predator'].components + self.vivarium.obj_dict['prey'].components
         if keycode in [wx.WXK_LEFT]:
             if len(select_components) > 0:
                 select_components[self.select_obj_index].reset("color")
                 self.select_obj_index = (self.select_obj_index - 1) % len(select_components)
                 select_components[self.select_obj_index].setCurrentColor(self.select_color[0])
+            print(f'select {self.c_k_dict[select_components[self.select_obj_index]]}')
             self.update()
         elif keycode in [wx.WXK_RIGHT]:
             if len(select_components) > 0:
                 select_components[self.select_obj_index].reset("color")
                 self.select_obj_index = (self.select_obj_index + 1) % len(select_components)
                 select_components[self.select_obj_index].setCurrentColor(self.select_color[0])
+            print(f'select {self.c_k_dict[select_components[self.select_obj_index]]}')
             self.update()
         target = select_components[self.select_obj_index]
         return target
 
     def _get_mirror(self, target):
-        for name, c in self.c_dict.items():
-            if c is target:
-                if len(name.split('_', 1)) == 2:
-                    pre, suf = name.split('_', 1)
-                    if pre == 'left':
-                        mirror_name = 'right_' + suf
-                        print(f'target {name}, mirror {mirror_name}')
-                        return self.c_dict[mirror_name]
-                    elif pre == 'right':
-                        mirror_name = 'left_' + suf
-                        print(f'target {name}, mirror {mirror_name}')
-                        return self.c_dict[mirror_name]
+        name = self.c_k_dict[target]
+        if len(name.split('_', 1)) == 2:
+            pre, suf = name.split('_', 1)
+            if pre == 'left':
+                mirror_name = 'right_' + suf
+                print(f'target {name}, mirror {mirror_name}')
+                return self.k_c_dict[mirror_name]
+            elif pre == 'right':
+                mirror_name = 'left_' + suf
+                print(f'target {name}, mirror {mirror_name}')
+                return self.k_c_dict[mirror_name]
         return None
 
     def adjust(self, event):
         target = self._select_target(event)
+        key = self.c_k_dict[target]
         keycode = event.GetUnicodeKey()
         if self.select_obj_index < 0 or target is None:
             return
@@ -355,7 +358,7 @@ class Sketch(CanvasBase):
         self._adjust_pos(target, keycode, size)
         self._adjust_scale(target, keycode, size)
         print(
-            f"current u: {target.uAngle} v: {target.vAngle} w: {target.wAngle}  pos: {target.currentPos}, scale: {target.currentScaling}")
+            f"current {key} u: {target.uAngle} v: {target.vAngle} w: {target.wAngle}  pos: {target.currentPos}, scale: {target.currentScaling}")
         mirror = self._get_mirror(target)
         if mirror is not None:
             self._adjust_angle(mirror, keycode, size, mirror=True)
