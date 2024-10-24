@@ -5,6 +5,7 @@ from EnvironmentObject import EnvironmentObject
 from util import AddMirror
 
 class Predator(Component, EnvironmentObject):
+    name = "dinosaur"
     def __init__(self, position, shaderProg, size=1):
         super(Predator, self).__init__(position)
         bound = Cube(Point((0, 0, 0)), shaderProg, [0.35 * size, 0.9 * size, 0.9 * size], Ct.WHITE)

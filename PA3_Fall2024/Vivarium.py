@@ -55,7 +55,7 @@ class Vivarium(Component):
         self.k_c_dict = dict()
         self.c_k_dict = dict()
         self.obj_dict = dict()
-        self.addNewObjInTank(Linkage(parent, Point((0, 0, 0)), shaderProg))
+        # self.addNewObjInTank(Linkage(parent, Point((0, 0, 0)), shaderProg))
         self.addNewObjInTank(Prey(Point((1, 1, 1)), shaderProg), "prey")
         self.addNewObjInTank(Predator(Point((0, 0, 0)), shaderProg), "predator")
 
